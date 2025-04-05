@@ -6,9 +6,10 @@ const auth = require("../middleware/auth");
 // 📩 Get All Notifications for the Logged-in User
 router.get("/", auth, async (req, res) => {
   try {
-    const notifications = await Notification.find({ recipient: req.user.id })
-      .sort({ createdAt: -1 }) // Show latest notifications first
-      .limit(20); // Optional: Limit to last 20 notifications
+    const notifications = await Notification.find({
+      recipient: req.user.id,
+    }).sort({ createdAt: -1 }); // Show latest notifications first
+    // .limit(50); // Optional: Limit to last 20 notifications
 
     res.json(notifications);
   } catch (err) {
