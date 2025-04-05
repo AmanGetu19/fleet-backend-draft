@@ -7,7 +7,7 @@ const Vehicle = require("../models/Vehicle");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
 
-// 📝 Driver Requests Fuel (Admin Approval Needed)
+// 📝 Driver Requests Fuel (Only Assigned Driver Can Request)
 router.post("/request", auth, async (req, res) => {
   if (req.user.role !== "driver") {
     return res.status(403).json({ message: "Only drivers can request fuel." });
@@ -19,6 +19,16 @@ router.post("/request", auth, async (req, res) => {
     const vehicle = await Vehicle.findById(vehicleId);
     if (!vehicle) {
       return res.status(404).json({ message: "Vehicle not found" });
+    }
+
+    // ✅ Convert both `assignedDriver` and `req.user.id` to strings for comparison
+    if (
+      !vehicle.assignedDriver.driverId ||
+      vehicle.assignedDriver.driverId.toString() !== req.user.id
+    ) {
+      return res.status(403).json({
+        message: "You are not the assigned driver of this vehicle.",
+      });
     }
 
     const driver = await User.findById(req.user.id);
@@ -54,6 +64,7 @@ router.post("/request", auth, async (req, res) => {
       .status(201)
       .json({ message: "Fuel request submitted successfully", fuelRequest });
   } catch (err) {
+    console.error("Error submitting fuel request:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
